@@ -1,4 +1,4 @@
-Bible for Android
+The Word of God (Holy Scriptures) for Android
 =================
 
 **100% Free, Open-Source, Quick and Friendly Bible App.**
