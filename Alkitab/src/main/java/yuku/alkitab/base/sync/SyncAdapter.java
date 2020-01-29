@@ -11,6 +11,14 @@ import android.util.Pair;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 import okhttp3.Call;
 import okhttp3.FormBody;
 import okhttp3.MultipartBody;
@@ -20,24 +28,16 @@ import yuku.afw.storage.Preferences;
 import yuku.alkitab.base.App;
 import yuku.alkitab.base.IsiActivity;
 import yuku.alkitab.base.S;
-import yuku.alkitab.base.U;
 import yuku.alkitab.base.ac.MarkerListActivity;
 import yuku.alkitab.base.ac.MarkersActivity;
 import yuku.alkitab.base.ac.ReadingPlanActivity;
+import yuku.alkitab.base.connection.Connections;
 import yuku.alkitab.base.model.SyncShadow;
 import yuku.alkitab.base.storage.Prefkey;
 import yuku.alkitab.base.util.AppLog;
 import yuku.alkitab.base.util.History;
+import yuku.alkitab.base.util.InstallationUtil;
 import yuku.alkitab.base.util.Sqlitil;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
 
 /**
  * Handle the transfer of data between a server and an
@@ -280,11 +280,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			.setType(MultipartBody.FORM)
 			.addFormDataPart("simpleToken", simpleToken)
 			.addFormDataPart("syncSetName", syncSetName)
-			.addFormDataPart("installation_id", U.getInstallationId())
+			.addFormDataPart("installation_id", InstallationUtil.getInstallationId())
 			.addFormDataPart("clientState", App.getDefaultGson().toJson(clientState))
 			.build();
 
-		final Call call = App.getLongTimeoutOkHttpClient().newCall(
+		final Call call = Connections.getLongTimeoutOkHttpClient().newCall(
 			new Request.Builder()
 				.url(serverPrefix + "sync/api/sync")
 				.post(requestBody)
@@ -297,7 +297,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			// arbritrary amount of time may pass on the next line. It is possible for the current data to be modified during this operation.
 			SyncRecorder.log(SyncRecorder.EventKind.sync_to_server_pre, syncSetName, "serverPrefix", Sync.getEffectiveServerPrefix());
 			final long startTime = System.currentTimeMillis();
-			final String response_s = U.inputStreamUtf8ToString(call.execute().body().byteStream());
+			final String response_s = call.execute().body().string();
 			AppLog.d(TAG, "@@syncMabel server response string: " + response_s);
 			final Sync.SyncResponseJson<Sync_Mabel.Content> response = App.getDefaultGson().fromJson(response_s, new TypeToken<Sync.SyncResponseJson<Sync_Mabel.Content>>() {}.getType());
 			SyncRecorder.log(SyncRecorder.EventKind.sync_to_server_post_response_ok, syncSetName, "duration_ms", System.currentTimeMillis() - startTime);
@@ -381,11 +381,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		final RequestBody requestBody = new FormBody.Builder()
 			.add("simpleToken", simpleToken)
 			.add("syncSetName", syncSetName)
-			.add("installation_id", U.getInstallationId())
+			.add("installation_id", InstallationUtil.getInstallationId())
 			.add("clientState", App.getDefaultGson().toJson(clientState))
 			.build();
 
-		final Call call = App.getLongTimeoutOkHttpClient().newCall(
+		final Call call = Connections.getLongTimeoutOkHttpClient().newCall(
 			new Request.Builder()
 				.url(serverPrefix + "sync/api/sync")
 				.post(requestBody)
@@ -398,7 +398,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			// arbritrary amount of time may pass on the next line. It is possible for the current data to be modified during this operation.
 			SyncRecorder.log(SyncRecorder.EventKind.sync_to_server_pre, syncSetName, "serverPrefix", Sync.getEffectiveServerPrefix());
 			final long startTime = System.currentTimeMillis();
-			final String response_s = U.inputStreamUtf8ToString(call.execute().body().byteStream());
+			final String response_s = call.execute().body().string();
 			AppLog.d(TAG, "@@syncHistory server response string: " + response_s);
 			final Sync.SyncResponseJson<Sync_History.Content> response = App.getDefaultGson().fromJson(response_s, new TypeToken<Sync.SyncResponseJson<Sync_History.Content>>() {}.getType());
 			SyncRecorder.log(SyncRecorder.EventKind.sync_to_server_post_response_ok, syncSetName, "duration_ms", System.currentTimeMillis() - startTime);
@@ -474,11 +474,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		final RequestBody requestBody = new FormBody.Builder()
 			.add("simpleToken", simpleToken)
 			.add("syncSetName", syncSetName)
-			.add("installation_id", U.getInstallationId())
+			.add("installation_id", InstallationUtil.getInstallationId())
 			.add("clientState", App.getDefaultGson().toJson(clientState))
 			.build();
 
-		final Call call = App.getLongTimeoutOkHttpClient().newCall(
+		final Call call = Connections.getLongTimeoutOkHttpClient().newCall(
 			new Request.Builder()
 				.url(serverPrefix + "sync/api/sync")
 				.post(requestBody)
@@ -491,7 +491,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			// arbritrary amount of time may pass on the next line. It is possible for the current data to be modified during this operation.
 			SyncRecorder.log(SyncRecorder.EventKind.sync_to_server_pre, syncSetName, "serverPrefix", Sync.getEffectiveServerPrefix());
 			final long startTime = System.currentTimeMillis();
-			final String response_s = U.inputStreamUtf8ToString(call.execute().body().byteStream());
+			final String response_s = call.execute().body().string();
 			AppLog.d(TAG, "@@syncPins server response string: " + response_s);
 			final Sync.SyncResponseJson<Sync_Pins.Content> response = App.getDefaultGson().fromJson(response_s, new TypeToken<Sync.SyncResponseJson<Sync_Pins.Content>>() {}.getType());
 			SyncRecorder.log(SyncRecorder.EventKind.sync_to_server_post_response_ok, syncSetName, "duration_ms", System.currentTimeMillis() - startTime);
@@ -569,11 +569,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		final RequestBody requestBody = new FormBody.Builder()
 			.add("simpleToken", simpleToken)
 			.add("syncSetName", syncSetName)
-			.add("installation_id", U.getInstallationId())
+			.add("installation_id", InstallationUtil.getInstallationId())
 			.add("clientState", App.getDefaultGson().toJson(clientState))
 			.build();
 
-		final Call call = App.getLongTimeoutOkHttpClient().newCall(
+		final Call call = Connections.getLongTimeoutOkHttpClient().newCall(
 			new Request.Builder()
 				.url(serverPrefix + "sync/api/sync")
 				.post(requestBody)
@@ -586,7 +586,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			// arbritrary amount of time may pass on the next line. It is possible for the current data to be modified during this operation.
 			SyncRecorder.log(SyncRecorder.EventKind.sync_to_server_pre, syncSetName, "serverPrefix", Sync.getEffectiveServerPrefix());
 			final long startTime = System.currentTimeMillis();
-			final String response_s = U.inputStreamUtf8ToString(call.execute().body().byteStream());
+			final String response_s = call.execute().body().string();
 			AppLog.d(TAG, "@@syncRp server response string: " + response_s);
 			final Sync.SyncResponseJson<Sync_Rp.Content> response = App.getDefaultGson().fromJson(response_s, new TypeToken<Sync.SyncResponseJson<Sync_Rp.Content>>() {}.getType());
 			SyncRecorder.log(SyncRecorder.EventKind.sync_to_server_post_response_ok, syncSetName, "duration_ms", System.currentTimeMillis() - startTime);

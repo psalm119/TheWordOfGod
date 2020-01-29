@@ -10,25 +10,24 @@ import androidx.annotation.Keep;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-import gnu.trove.set.TLongSet;
-import gnu.trove.set.hash.TLongHashSet;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import okhttp3.Call;
 import okhttp3.FormBody;
 import okhttp3.Request;
 import yuku.afw.storage.Preferences;
 import yuku.alkitab.base.App;
-import yuku.alkitab.base.U;
 import yuku.alkitab.base.ac.HelpActivity;
+import yuku.alkitab.base.connection.Connections;
 import yuku.alkitab.base.storage.Prefkey;
 import yuku.alkitab.base.widget.Localized;
 import yuku.alkitab.debug.BuildConfig;
 import yuku.alkitab.debug.R;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public abstract class Announce {
 	static final String TAG = Announce.class.getSimpleName();
@@ -78,7 +77,7 @@ public abstract class Announce {
 			}
 
 			if (result.announcements != null) {
-				final TLongSet read = getReadAnnouncementIds();
+				final Set<Long> read = getReadAnnouncementIds();
 				for (final Announcement announcement : result.announcements) {
 					if (!read.contains(announcement.id)) {
 						unreadAnnouncements.add(announcement);
@@ -139,12 +138,12 @@ public abstract class Announce {
 	}
 
 	private static AnnounceCheckResult getAnnouncements() throws IOException {
-		final Call call = App.okhttp().newCall(
+		final Call call = Connections.getOkHttp().newCall(
 			new Request.Builder()
 				.url(BuildConfig.SERVER_HOST + "announce/check")
 				.post(
 					new FormBody.Builder()
-						.add("installation_info", U.getInstallationInfoJson())
+						.add("installation_info", InstallationUtil.getInfoJson())
 						.build()
 				)
 				.build()
@@ -173,8 +172,8 @@ public abstract class Announce {
 		}
 	}
 
-	public static TLongSet getReadAnnouncementIds() {
-		final TLongSet res = new TLongHashSet();
+	public static Set<Long> getReadAnnouncementIds() {
+		final Set<Long> res = new HashSet<>();
 		final String s = Preferences.getString(Prefkey.announce_read_ids);
 		if (s != null) {
 			final long[] ids = App.getDefaultGson().fromJson(s, long[].class);
@@ -187,7 +186,7 @@ public abstract class Announce {
 
 	public static void markAsRead(final long[] announcementIds) {
 		if (announcementIds == null || announcementIds.length == 0) return;
-		final TLongSet read = getReadAnnouncementIds();
+		final Set<Long> read = getReadAnnouncementIds();
 		for (final long id : announcementIds) {
 			read.add(id);
 		}

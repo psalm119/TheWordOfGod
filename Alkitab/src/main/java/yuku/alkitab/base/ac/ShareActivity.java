@@ -33,8 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 
 public class ShareActivity extends BaseActivity {
-	public static final String TAG = ShareActivity.class.getSimpleName();
-
 	PackageManager mPm;
 	ResolveListAdapter mAdapter;
 
@@ -354,7 +352,7 @@ public class ShareActivity extends BaseActivity {
 						}
 					}.execute();
 				} else {
-					// it's already loading, just add listener.
+					// it's already loading, just add selectedVersesListener.
 					info.loadedListeners.add(icon);
 				}
 			}

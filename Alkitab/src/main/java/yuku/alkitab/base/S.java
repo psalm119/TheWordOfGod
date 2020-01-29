@@ -69,13 +69,7 @@ public class S {
 	}
 
 	private static class CalculatedDimensionsHolder {
-		static CalculatedDimensions applied;
-
-		static {
-			if (applied == null) {
-				applied = calculateDimensionsFromPreferences();
-			}
-		}
+		static CalculatedDimensions applied = calculateDimensionsFromPreferences();
 	}
 
 	@NonNull
@@ -158,7 +152,7 @@ public class S {
 	}
 
 	@NonNull
-	private static CalculatedDimensions calculateDimensionsFromPreferences() {
+	static CalculatedDimensions calculateDimensionsFromPreferences() {
 		final CalculatedDimensions res = new CalculatedDimensions();
 
 		final Resources resources = App.context.getResources();
@@ -257,6 +251,7 @@ public class S {
 	/**
 	 * Get the internal version model. This does not return a singleton. The ordering is the latest taken from preferences.
 	 */
+	@NonNull
 	public static MVersionInternal getMVersionInternal() {
 		final AppConfig ac = AppConfig.get();
 		final MVersionInternal res = new MVersionInternal();

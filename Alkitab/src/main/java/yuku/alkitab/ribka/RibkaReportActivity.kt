@@ -2,13 +2,13 @@ package yuku.alkitab.ribka
 
 import android.content.Intent
 import android.os.Bundle
-import com.google.android.material.textfield.TextInputLayout
-import androidx.core.util.PatternsCompat
 import android.view.View
 import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.TextView
+import androidx.core.util.PatternsCompat
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.android.material.textfield.TextInputLayout
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -16,8 +16,10 @@ import okhttp3.Request
 import okhttp3.Response
 import yuku.afw.storage.Preferences
 import yuku.alkitab.base.App
-import yuku.alkitab.base.U
 import yuku.alkitab.base.ac.base.BaseActivity
+import yuku.alkitab.base.connection.Connections
+import yuku.alkitab.base.connection.Connections.okHttp
+import yuku.alkitab.base.util.FormattedVerseText
 import yuku.alkitab.base.widget.VerseRenderer
 import yuku.alkitab.debug.BuildConfig
 import yuku.alkitab.debug.R
@@ -71,7 +73,7 @@ class RibkaReportActivity : BaseActivity() {
         tRibkaReference.text = reference
         VerseRenderer.render(tRibkaVerseText, null, ari, verseText, "", null, false, null, null)
 
-        tRibkaSuggestion.setText(U.removeSpecialCodes(verseText))
+        tRibkaSuggestion.setText(FormattedVerseText.removeSpecialCodes(verseText))
 
         val defaultEmail = Preferences.getString(R.string.pref_syncAccountName_key)
         if (defaultEmail != null) {
@@ -104,7 +106,7 @@ class RibkaReportActivity : BaseActivity() {
         val remarks = tRibkaRemarks.text.toString().trim()
 
         fun sameAsOriginal(): Boolean {
-            return (U.removeSpecialCodes(verseText)?.trim() == suggestion.trim())
+            return (FormattedVerseText.removeSpecialCodes(verseText)?.trim() == suggestion.trim())
         }
 
         // must have a change in suggestion OR put some remarks
@@ -135,7 +137,7 @@ class RibkaReportActivity : BaseActivity() {
             .progress(true, 0)
             .show()
 
-        App.okhttp().newCall(Request.Builder().url(BuildConfig.RIBKA_FUNCTIONS_HOST + "addIssue").post(form.build()).build()).enqueue(object : Callback {
+        Connections.okHttp.newCall(Request.Builder().url(BuildConfig.RIBKA_FUNCTIONS_HOST + "addIssue").post(form.build()).build()).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 pd.dismiss()
 

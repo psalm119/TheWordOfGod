@@ -99,7 +99,7 @@ import java.util.regex.Matcher;
 import java.util.zip.GZIPInputStream;
 
 public class VersionsActivity extends BaseActivity {
-	public static final String TAG = VersionsActivity.class.getSimpleName();
+	static final String TAG = VersionsActivity.class.getSimpleName();
 
 	private static final int REQCODE_openFile = 1;
 
@@ -146,21 +146,21 @@ public class VersionsActivity extends BaseActivity {
 	}
 
 	private void processIntent(Intent intent, String via) {
-		U.dumpIntent(intent, via);
+		dumpIntent(intent, via);
 
 		checkAndProcessOpenFileIntent(intent);
 	}
 
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	private void checkAndProcessOpenFileIntent(Intent intent) {
-		if (!U.equals(intent.getAction(), Intent.ACTION_VIEW)) return;
+		if (!Intent.ACTION_VIEW.equals(intent.getAction())) return;
 
 		// we are trying to open a file, so let's go to the DOWNLOADED tab, as it is more relevant.
 		viewPager.setCurrentItem(1);
 
 		final Uri uri = intent.getData();
 
-		final boolean isLocalFile = U.equals("file", uri.getScheme());
+		final boolean isLocalFile = "file".equals(uri.getScheme());
 		final Boolean isYesFile; // false:pdb true:yes null:cannotdetermine
 		final String filelastname;
 
@@ -603,7 +603,7 @@ public class VersionsActivity extends BaseActivity {
 
 				final Uri uri = Uri.parse(url);
 				final String scheme = uri.getScheme();
-				if (!U.equals(scheme, "http") && !U.equals(scheme, "https")) {
+				if (!"http".equals(scheme) && !"https".equals(scheme)) {
 					new MaterialDialog.Builder(VersionsActivity.this)
 						.content(R.string.version_download_invalid_url)
 						.positiveText(R.string.ok)
@@ -850,7 +850,7 @@ public class VersionsActivity extends BaseActivity {
 			}
 
 			display = new Locale(locale).getDisplayLanguage();
-			if (display == null || U.equals(display, locale)) {
+			if (display.equals(locale)) {
 
 				// try asking version config locale display
 				display = VersionConfig.get().locale_display.get(locale);
@@ -1089,7 +1089,7 @@ public class VersionsActivity extends BaseActivity {
 				final ShareActivity.Result result = ShareActivity.obtainResult(data);
 				if (result != null && result.chosenIntent != null) {
 					final Intent intent = new Intent(result.chosenIntent);
-					U.dumpIntent(intent, "share");
+					dumpIntent(intent, "share");
 
 					// grant permission for the chosen package and uri
 					final ComponentName component = intent.getComponent();

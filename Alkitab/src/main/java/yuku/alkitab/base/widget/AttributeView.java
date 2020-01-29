@@ -6,12 +6,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import androidx.core.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import androidx.core.view.MotionEventCompat;
 import yuku.alkitab.base.App;
 import yuku.alkitab.base.util.AppLog;
+import yuku.alkitab.base.verses.VersesController;
 import yuku.alkitab.debug.BuildConfig;
 import yuku.alkitab.debug.R;
 import yuku.alkitab.model.Version;
@@ -54,7 +55,7 @@ public class AttributeView extends View {
 	boolean has_maps;
 	float scale = 1.f;
 
-	private VersesView.AttributeListener attributeListener;
+	private VersesController.AttributeListener attributeListener;
 	private Version version;
 	private String versionId;
 	private int ari;
@@ -303,7 +304,7 @@ public class AttributeView extends View {
 		return false;
 	}
 
-	public void setAttributeListener(VersesView.AttributeListener attributeListener, final Version version, final String versionId, int ari) {
+	public void setAttributeListener(VersesController.AttributeListener attributeListener, final Version version, final String versionId, int ari) {
 		this.attributeListener = attributeListener;
 		this.version = version;
 		this.versionId = versionId;

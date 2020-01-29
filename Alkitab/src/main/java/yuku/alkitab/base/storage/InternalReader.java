@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class InternalReader implements BibleReader {
-	public static final String TAG = InternalReader.class.getSimpleName();
+	static final String TAG = InternalReader.class.getSimpleName();
 
 	// # for asset cache
 	private static InputStream cache_inputStream = null;
@@ -46,22 +46,6 @@ public class InternalReader implements BibleReader {
 		this.versionShortName = versionShortName;
 		this.versionLongName = versionLongName;
 		this.verseTextDecoder = verseTextDecoder;
-	}
-	
-	static class InternalSingleChapterVerses extends SingleChapterVerses {
-		private final String[] verses;
-
-		public InternalSingleChapterVerses(String[] verses) {
-			this.verses = verses;
-		}
-		
-		@Override public String getVerse(int verse_0) {
-			return verses[verse_0];
-		}
-
-		@Override public int getVerseCount() {
-			return verses.length;
-		}
 	}
 
 	@Override

@@ -1,18 +1,9 @@
 package yuku.alkitab.base.sync;
 
+import android.util.Pair;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import android.util.Pair;
 import com.google.gson.reflect.TypeToken;
-import yuku.alkitab.base.App;
-import yuku.alkitab.base.S;
-import yuku.alkitab.base.U;
-import yuku.alkitab.base.model.SyncShadow;
-import yuku.alkitab.base.util.Literals;
-import yuku.alkitab.base.util.Sqlitil;
-import yuku.alkitab.base.widget.AttributeView;
-import yuku.alkitab.model.ProgressMark;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -24,6 +15,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import yuku.alkitab.base.App;
+import yuku.alkitab.base.S;
+import yuku.alkitab.base.model.SyncShadow;
+import yuku.alkitab.base.util.Literals;
+import yuku.alkitab.base.util.Sqlitil;
+import yuku.alkitab.base.widget.AttributeView;
+import yuku.alkitab.model.ProgressMark;
 
 /**
  * Pin is the new name for progress mark.
@@ -44,12 +42,12 @@ public class Sync_Pins {
 
 		// additions and modifications (should not happen at all for pins)
 		for (final Sync.Entity<Content> dst : dsts) {
-			final Sync.Entity<Content> existing = findEntity(srcs, dst.gid, dst.kind);
+			final Sync.Entity<Content> existing = SyncUtils.findEntity(srcs, dst.gid, dst.kind);
 
 			if (existing == null) {
 				delta.operations.add(new Sync.Operation<>(Sync.Opkind.add, dst.kind, dst.gid, dst.content));
 			} else {
-				if (!isSameContent(dst, existing)) { // only when it changes
+				if (!SyncUtils.isSameContent(dst, existing)) { // only when it changes
 					delta.operations.add(new Sync.Operation<>(Sync.Opkind.mod, dst.kind, dst.gid, dst.content));
 				}
 			}
@@ -57,29 +55,13 @@ public class Sync_Pins {
 
 		// deletions
 		for (final Sync.Entity<Content> src : srcs) {
-			final Sync.Entity<Content> still_have = findEntity(dsts, src.gid, src.kind);
+			final Sync.Entity<Content> still_have = SyncUtils.findEntity(dsts, src.gid, src.kind);
 			if (still_have == null) {
 				delta.operations.add(new Sync.Operation<>(Sync.Opkind.del, src.kind, src.gid, null));
 			}
 		}
 
 		return Pair.create(new Sync.ClientState<>(ss == null ? 0 : ss.revno, delta), dsts);
-	}
-
-	private static boolean isSameContent(final Sync.Entity<Content> a, final Sync.Entity<Content> b) {
-		if (!U.equals(a.gid, b.gid)) return false;
-		if (!U.equals(a.kind, b.kind)) return false;
-
-		return U.equals(a.content, b.content);
-	}
-
-	private static Sync.Entity<Content> findEntity(final List<Sync.Entity<Content>> list, final String gid, final String kind) {
-		for (final Sync.Entity<Content> entity : list) {
-			if (U.equals(gid, entity.gid) && U.equals(kind, entity.kind)) {
-				return entity;
-			}
-		}
-		return null;
 	}
 
 	private static List<Sync.Entity<Content>> entitiesFromShadow(@NonNull final SyncShadow ss) {
@@ -94,7 +76,7 @@ public class Sync_Pins {
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		final BufferedWriter w = new BufferedWriter(new OutputStreamWriter(baos, Charset.forName("utf-8")));
 		App.getDefaultGson().toJson(data, new TypeToken<Sync.SyncShadowDataJson<Content>>() {}.getType(), w);
-		U.wontThrow(() -> w.flush());
+		SyncUtils.wontThrow(w::flush);
 		final SyncShadow res = new SyncShadow();
 		res.data = baos.toByteArray();
 		res.syncSetName = SyncShadow.SYNC_SET_PINS;

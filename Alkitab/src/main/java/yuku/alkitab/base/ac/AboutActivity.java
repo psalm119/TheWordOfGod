@@ -34,8 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static yuku.alkitab.base.util.Literals.List;
 
 public class AboutActivity extends BaseActivity {
-	public static final String TAG = AboutActivity.class.getSimpleName();
-
 	public static final int LOADER_announce = 1;
 
 	View root;
@@ -186,7 +184,7 @@ public class AboutActivity extends BaseActivity {
 		manualAnnouncementReload.set(false);
 		getLoaderManager().initLoader(LOADER_announce, null, announcementLoaderCallbacks).forceLoad();
 
-		imgLogo.setImageDrawable(ResourcesCompat.getDrawableForDensity(getResources(), R.drawable.ic_launcher, DisplayMetrics.DENSITY_XXXHIGH, null));
+		imgLogo.setImageDrawable(ResourcesCompat.getDrawableForDensity(getResources(), R.mipmap.ic_launcher, DisplayMetrics.DENSITY_XXXHIGH, null));
 
 		imgLogo.setOnTouchListener((v, event) -> {
 			if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {

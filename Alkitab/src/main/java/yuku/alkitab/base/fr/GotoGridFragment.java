@@ -3,25 +3,25 @@ package yuku.alkitab.base.fr;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
-import androidx.core.view.ViewCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import yuku.afw.storage.Preferences;
 import yuku.alkitab.base.S;
-import yuku.alkitab.base.U;
 import yuku.alkitab.base.fr.base.BaseGotoFragment;
 import yuku.alkitab.base.storage.Prefkey;
 import yuku.alkitab.base.util.AppLog;
+import yuku.alkitab.base.util.BookColorUtil;
 import yuku.alkitab.base.util.BookNameSorter;
 import yuku.alkitab.debug.R;
 import yuku.alkitab.model.Book;
 
 public class GotoGridFragment extends BaseGotoFragment {
-	public static final String TAG = GotoGridFragment.class.getSimpleName();
+	static final String TAG = GotoGridFragment.class.getSimpleName();
 	
 	private static final String EXTRA_verse = "verse";
 	private static final String EXTRA_chapter = "chapter";
@@ -66,7 +66,7 @@ public class GotoGridFragment extends BaseGotoFragment {
 		gridVerse.setVisibility(View.INVISIBLE);
 		
 		animateFadeOutAndSlideLeft(gridBook, gridChapter);
-		ViewCompat.jumpDrawablesToCurrentState(lSelectedBook);
+		lSelectedBook.jumpDrawablesToCurrentState();
 		lSelectedBook.setAlpha(0.f);
 		lSelectedBook.animate().alpha(1.f).setDuration(ANIM_DURATION);
 
@@ -83,7 +83,7 @@ public class GotoGridFragment extends BaseGotoFragment {
 		gridChapter.setVisibility(View.INVISIBLE);
 
 		animateFadeOutAndSlideLeft(gridBook, gridVerse);
-		ViewCompat.jumpDrawablesToCurrentState(lSelectedBook);
+		lSelectedBook.jumpDrawablesToCurrentState();
 		lSelectedBook.setAlpha(0.f);
 		lSelectedBook.animate().alpha(1.f).setDuration(ANIM_DURATION);
 
@@ -170,13 +170,16 @@ public class GotoGridFragment extends BaseGotoFragment {
 	}
 	
 	protected void displaySelectedBookAndChapter() {
+		// Prevent crash when this is suddenly null
+		if (selectedBook == null) return;
+
 		lSelectedBook.setText(selectedBook.shortName);
-		lSelectedBook.setTextColor(U.getForegroundColorOnDarkBackgroundByBookId(selectedBook.bookId));
+		lSelectedBook.setTextColor(BookColorUtil.getForegroundOnDark(selectedBook.bookId));
 		if (selectedChapter == 0) {
 			lSelectedChapter.setVisibility(View.GONE);
 		} else {
 			lSelectedChapter.setVisibility(View.VISIBLE);
-			ViewCompat.jumpDrawablesToCurrentState(lSelectedChapter);
+			lSelectedChapter.jumpDrawablesToCurrentState();
 			lSelectedChapter.setText(String.valueOf(selectedChapter));
 		}
 	}
@@ -224,9 +227,10 @@ public class GotoGridFragment extends BaseGotoFragment {
 	}
 
 	abstract class GridAdapter extends RecyclerView.Adapter<VH> {
+		@NonNull
 		@Override
-		public VH onCreateViewHolder(final ViewGroup parent, final int viewType) {
-			return new VH(getActivity().getLayoutInflater().inflate(R.layout.item_goto_grid_cell, parent, false));
+		public VH onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
+			return new VH(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_goto_grid_cell, parent, false));
 		}
 
 		@Override
@@ -291,7 +295,7 @@ public class GotoGridFragment extends BaseGotoFragment {
 		@Override
 		int textColorForView(final int position) {
 			final Book book = getItem(position);
-			return U.getForegroundColorOnDarkBackgroundByBookId(book.bookId);
+			return BookColorUtil.getForegroundOnDark(book.bookId);
 		}
 	}
 	
@@ -317,7 +321,10 @@ public class GotoGridFragment extends BaseGotoFragment {
 				if (Preferences.getBoolean(Prefkey.gotoAskForVerse, Prefkey.GOTO_ASK_FOR_VERSE_DEFAULT)) {
 					transitionChapterToVerse();
 				} else {
-					((GotoFinishListener) getActivity()).onGotoFinished(GotoFinishListener.GOTO_TAB_grid, selectedBook.bookId, selectedChapter, 0);
+					final GotoFinishListener activity = (GotoFinishListener) getActivity();
+					if (activity != null) {
+						activity.onGotoFinished(GotoFinishListener.GOTO_TAB_grid, selectedBook.bookId, selectedChapter, 0);
+					}
 				}
 			});
 		}
@@ -348,7 +355,10 @@ public class GotoGridFragment extends BaseGotoFragment {
 
 			holder.itemView.setOnClickListener(v -> {
 				final int selectedVerse = position + 1;
-				((GotoFinishListener) getActivity()).onGotoFinished(GotoFinishListener.GOTO_TAB_grid, selectedBook.bookId, selectedChapter, selectedVerse);
+				final GotoFinishListener activity = (GotoFinishListener) getActivity();
+				if (activity != null) {
+					activity.onGotoFinished(GotoFinishListener.GOTO_TAB_grid, selectedBook.bookId, selectedChapter, selectedVerse);
+				}
 			});
 		}
 

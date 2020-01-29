@@ -9,11 +9,13 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import androidx.annotation.NonNull;
+import java.util.Arrays;
+import java.util.Locale;
 import yuku.alkitab.base.S;
-import yuku.alkitab.base.U;
 import yuku.alkitab.base.config.AppConfig;
 import yuku.alkitab.base.model.MVersionDb;
 import yuku.alkitab.base.util.AppLog;
+import yuku.alkitab.base.util.FormattedVerseText;
 import yuku.alkitab.base.util.LidToAri;
 import yuku.alkitab.model.Book;
 import yuku.alkitab.model.SingleChapterVerses;
@@ -21,11 +23,8 @@ import yuku.alkitab.util.Ari;
 import yuku.alkitab.util.IntArrayList;
 import yuku.alkitabintegration.provider.VerseProvider;
 
-import java.util.Arrays;
-import java.util.Locale;
-
 public class Provider extends ContentProvider {
-	public static final String TAG = Provider.class.getSimpleName();
+	static final String TAG = Provider.class.getSimpleName();
 
 	private static final int PATHID_bible_verses_single_by_lid = 1;
 	private static final int PATHID_bible_verses_single_by_ari = 2;
@@ -183,7 +182,7 @@ public class Provider extends ContentProvider {
 				String text = S.activeVersion().loadVerseText(ari);
 				if (text != null) {
 					if (!formatting) {
-						text = U.removeSpecialCodes(text);
+						text = FormattedVerseText.removeSpecialCodes(text);
 					}
 					res.addRow(new Object[]{1, ari, book.shortName, text});
 				}
@@ -227,7 +226,7 @@ public class Provider extends ContentProvider {
 				if (book != null) {
 					String text = S.activeVersion().loadVerseText(ari);
 					if (!formatting) {
-						text = U.removeSpecialCodes(text);
+						text = FormattedVerseText.removeSpecialCodes(text);
 					}
 					res.addRow(new Object[] {++c, ari, book.shortName, text});
 				}
@@ -281,7 +280,7 @@ public class Provider extends ContentProvider {
 				int ari = ari_bc | v_1;
 				String text = verses.getVerse(v_0);
 				if (!formatting) {
-					text = U.removeSpecialCodes(text);
+					text = FormattedVerseText.removeSpecialCodes(text);
 				}
 				count++;
 				cursor.addRow(new Object[] {last_c + count, ari, book.shortName, text});

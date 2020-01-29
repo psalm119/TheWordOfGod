@@ -1,19 +1,18 @@
 package yuku.alkitab.base.widget;
 
 import android.content.Context;
-import android.content.res.Configuration;
-import androidx.core.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.widget.Button;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.view.MotionEventCompat;
 import yuku.alkitab.debug.R;
 
-public class GotoButton extends Button {
-	public static final String TAG = GotoButton.class.getSimpleName();
-
+public class GotoButton extends AppCompatButton {
 	public interface FloaterDragListener {
 		void onFloaterDragStart(float screenX, float screenY);
+
 		void onFloaterDragMove(float screenX, float screenY);
+
 		void onFloaterDragComplete(float screenX, float screenY);
 	}
 
@@ -33,13 +32,6 @@ public class GotoButton extends Button {
 
 	public GotoButton(final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs, defStyle);
-	}
-
-	@Override
-	protected void onConfigurationChanged(final Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-
-		untouchableSideWidth = Integer.MIN_VALUE;
 	}
 
 	@Override

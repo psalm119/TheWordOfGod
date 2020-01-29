@@ -5,10 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import androidx.annotation.IdRes;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.widget.Toolbar;
 import android.text.SpannableStringBuilder;
 import android.text.style.BackgroundColorSpan;
 import android.view.LayoutInflater;
@@ -20,13 +16,20 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
+import androidx.annotation.IdRes;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
 import com.afollestad.materialdialogs.MaterialDialog;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import yuku.afw.storage.Preferences;
 import yuku.afw.widget.EasyAdapter;
 import yuku.alkitab.base.App;
 import yuku.alkitab.base.IsiActivity;
 import yuku.alkitab.base.S;
-import yuku.alkitab.base.U;
 import yuku.alkitab.base.ac.base.BaseActivity;
 import yuku.alkitab.base.dialog.TypeBookmarkDialog;
 import yuku.alkitab.base.dialog.TypeHighlightDialog;
@@ -35,9 +38,11 @@ import yuku.alkitab.base.storage.Prefkey;
 import yuku.alkitab.base.util.Appearances;
 import yuku.alkitab.base.util.Debouncer;
 import yuku.alkitab.base.util.Highlights;
+import yuku.alkitab.base.util.LabelColorUtil;
 import yuku.alkitab.base.util.QueryTokenizer;
 import yuku.alkitab.base.util.SearchEngine;
 import yuku.alkitab.base.util.Sqlitil;
+import yuku.alkitab.base.util.TextColorUtil;
 import yuku.alkitab.base.widget.VerseRenderer;
 import yuku.alkitab.debug.R;
 import yuku.alkitab.model.Label;
@@ -47,14 +52,7 @@ import yuku.alkitab.util.Ari;
 import yuku.alkitabintegration.display.Launcher;
 import yuku.devoxx.flowlayout.FlowLayout;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
 public class MarkerListActivity extends BaseActivity {
-	public static final String TAG = MarkerListActivity.class.getSimpleName();
-
 	private static final int REQCODE_edit_note = 1;
 
 	// in
@@ -199,7 +197,7 @@ public class MarkerListActivity extends BaseActivity {
 		}
 
 		tEmpty.setTextColor(applied.fontColor);
-		hiliteColor = U.getSearchKeywordTextColorByBrightness(applied.backgroundBrightness);
+		hiliteColor = TextColorUtil.getSearchKeywordByBrightness(applied.backgroundBrightness);
 
 		loadAndFilter();
 	}
@@ -324,7 +322,7 @@ public class MarkerListActivity extends BaseActivity {
 		final TextView lCaption = res.findViewById(R.id.lCaption);
 		lCaption.setText(label.title);
 
-		U.applyLabelColor(label, lCaption);
+		LabelColorUtil.apply(label, lCaption);
 
 		return res;
 	}
@@ -574,7 +572,7 @@ public class MarkerListActivity extends BaseActivity {
 					lDate.setText(createTimeDisplay);
 				} else {
 					final String modifyTimeDisplay = Sqlitil.toLocaleDateMedium(modifyTime);
-					if (U.equals(createTimeDisplay, modifyTimeDisplay)) {
+					if (createTimeDisplay.equals(modifyTimeDisplay)) {
 						// show time for modifyTime when createTime and modifyTime is on the same day
 						lDate.setText(getString(R.string.create_edited_modified_time, createTimeDisplay, Sqlitil.toLocaleTime(modifyTime)));
 					} else {

@@ -10,11 +10,10 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Build;
-import androidx.annotation.NonNull;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.core.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import yuku.afw.storage.Preferences;
 import yuku.alkitab.base.App;
 import yuku.alkitab.base.IsiActivity;
@@ -23,8 +22,6 @@ import yuku.alkitab.debug.R;
 
 
 public class LabeledSplitHandleButton extends SplitHandleButton {
-	public static final String TAG = LabeledSplitHandleButton.class.getSimpleName();
-
 	String label1 = null;
 	String label2 = null;
 	Paint labelPaint = new Paint();
@@ -70,7 +67,7 @@ public class LabeledSplitHandleButton extends SplitHandleButton {
 		labelPaint.setShadowLayer(2.f * density, 0, 0, 0xff000000);
 		labelPaint.setTextSize(textSize * density);
 		if (Build.VERSION.SDK_INT >= 21) {
-			labelPaint.setTypeface(Typeface.create("sans-serif-medium", 0));
+			labelPaint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 		} else {
 			labelPaint.setTypeface(Typeface.DEFAULT_BOLD);
 		}
@@ -105,7 +102,7 @@ public class LabeledSplitHandleButton extends SplitHandleButton {
 		final int maxLabel1sz = (int) Math.min(140 * density, label1length);
 		final int maxLabel2sz = (int) Math.min(140 * density, label2length);
 
-		final int action = MotionEventCompat.getActionMasked(event);
+		final int action = event.getActionMasked();
 		if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
 			// pos is the x (when orientation is vertical) or y (otherwise)
 			final float pos;
@@ -191,7 +188,7 @@ public class LabeledSplitHandleButton extends SplitHandleButton {
 			if (rotatedown) {
 				final float cl = length * 0.5f;
 				final float ct = thickness * 0.5f;
-				final float r = rotatelength * 0.75f;
+				final float r = rotatelength * 1.5f;
 
 				if (orientation == Orientation.vertical) canvas.drawCircle(cl, ct, r, accentColorPaint);
 				else canvas.drawCircle(ct, cl, r, accentColorPaint);
@@ -297,7 +294,7 @@ public class LabeledSplitHandleButton extends SplitHandleButton {
 		}
 	};
 
-	private void initializePrimaryColor() {
+	void initializePrimaryColor() {
 		if (Preferences.getBoolean(Prefkey.is_night_mode, false)) {
 			primaryColor = ResourcesCompat.getColor(getResources(), R.color.primary_night_mode, getContext().getTheme());
 		} else {

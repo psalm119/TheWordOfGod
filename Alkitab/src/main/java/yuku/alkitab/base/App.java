@@ -3,40 +3,31 @@ package yuku.alkitab.base;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.os.StrictMode;
 import android.view.ViewConfiguration;
-
 import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.multidex.MultiDex;
 import androidx.preference.PreferenceManager;
-
 import com.crashlytics.android.Crashlytics;
 import com.downloader.PRDownloader;
 import com.downloader.PRDownloaderConfig;
 import com.google.gson.Gson;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
-
-import java.io.File;
+import io.fabric.sdk.android.Fabric;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.concurrent.TimeUnit;
-
-import io.fabric.sdk.android.Fabric;
-import okhttp3.Cache;
 import okhttp3.Call;
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.internal.Version;
 import yuku.afw.storage.Preferences;
+import yuku.alkitab.base.connection.Connections;
+import yuku.alkitab.base.connection.PRDownloaderOkHttpClient;
 import yuku.alkitab.base.model.SyncShadow;
 import yuku.alkitab.base.storage.Prefkey;
 import yuku.alkitab.base.sync.Fcm;
 import yuku.alkitab.base.sync.Sync;
 import yuku.alkitab.base.util.AppLog;
-import yuku.alkitab.debug.BuildConfig;
 import yuku.alkitab.debug.R;
 import yuku.alkitab.reminder.util.DevotionReminder;
 import yuku.alkitab.tracking.Tracker;
@@ -45,43 +36,9 @@ import yuku.alkitabintegration.display.Launcher;
 import yuku.stethoshim.StethoShim;
 
 public class App extends yuku.afw.App {
-	public static final String TAG = App.class.getSimpleName();
+	static final String TAG = App.class.getSimpleName();
 
 	private static boolean initted = false;
-
-	static class UserAgentInterceptor implements Interceptor {
-		@Override
-		public Response intercept(final Chain chain) throws IOException {
-			final Request originalRequest = chain.request();
-			final Request requestWithUserAgent = originalRequest.newBuilder()
-				.removeHeader("User-Agent")
-				.addHeader("User-Agent", httpUserAgent())
-				.build();
-			return chain.proceed(requestWithUserAgent);
-		}
-	}
-
-	@NonNull
-	static String httpUserAgent() {
-		return Version.userAgent + " " + App.context.getPackageName() + "/" + App.getVersionName();
-	}
-
-	enum OkHttpClientWrapper {
-		INSTANCE;
-
-		final OkHttpClient longTimeoutClient;
-
-		{
-			final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-			builder
-				.addNetworkInterceptor(new UserAgentInterceptor())
-				.connectTimeout(300, TimeUnit.SECONDS)
-				.readTimeout(300, TimeUnit.SECONDS)
-				.writeTimeout(600, TimeUnit.SECONDS);
-			StethoShim.addNetworkInterceptor(builder);
-			longTimeoutClient = builder.build();
-		}
-	}
 
 	enum GsonWrapper {
 		INSTANCE;
@@ -98,11 +55,7 @@ public class App extends yuku.afw.App {
 	}
 
 	public static Call downloadCall(String url) {
-		return okhttp().newCall(new Request.Builder().url(url).build());
-	}
-
-	public static OkHttpClient getLongTimeoutOkHttpClient() {
-		return OkHttpClientWrapper.INSTANCE.longTimeoutClient;
+		return Connections.getOkHttp().newCall(new Request.Builder().url(url).build());
 	}
 
 	@Override
@@ -126,6 +79,13 @@ public class App extends yuku.afw.App {
 
 		if (context == null) {
 			throw new RuntimeException("yuku.afw.App.context must have been set via initWithAppContext(Context) before calling this method.");
+		}
+
+		// Do not crash even if the devotion notification sound settings is set to file URI.
+		// This only happens on Android 7.0 and 7.1.
+		// https://console.firebase.google.com/u/0/project/alkitab-host-hrd/crashlytics/app/android:yuku.alkitab/issues/5b34ea186007d59fcd13a1ab
+		if (Build.VERSION.SDK_INT >= 24 && Build.VERSION.SDK_INT <= 25) {
+			StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().build());
 		}
 
 		Tracker.init(context);
@@ -153,7 +113,8 @@ public class App extends yuku.afw.App {
 		forceOverflowMenu();
 
 		PRDownloader.initialize(context, new PRDownloaderConfig.Builder()
-			.setUserAgent(httpUserAgent())
+			.setHttpClient(new PRDownloaderOkHttpClient(Connections.getOkHttp()))
+			.setUserAgent(Connections.getHttpUserAgent())
 			.build()
 		);
 
@@ -202,36 +163,6 @@ public class App extends yuku.afw.App {
 		MultiDex.install(this);
 	}
 
-	private static OkHttpClient okhttp;
-
-	@NonNull
-	public static synchronized OkHttpClient okhttp() {
-		OkHttpClient res = okhttp;
-		if (res == null) {
-			final File cacheDir = new File(context.getCacheDir(), "okhttp-cache");
-			if (!cacheDir.exists()) {
-				//noinspection ResultOfMethodCallIgnored
-				cacheDir.mkdirs();
-			}
-
-			final OkHttpClient.Builder builder = new OkHttpClient.Builder()
-				.cache(new Cache(cacheDir, 50 * 1024 * 1024))
-				.connectTimeout(30, TimeUnit.SECONDS)
-				.readTimeout(30, TimeUnit.SECONDS)
-				.writeTimeout(30, TimeUnit.SECONDS)
-				.addNetworkInterceptor(new UserAgentInterceptor());
-
-			if (BuildConfig.DEBUG) {
-				builder.hostnameVerifier((hostname, session) -> true);
-			}
-
-			StethoShim.addNetworkInterceptor(builder);
-
-			okhttp = res = builder.build();
-		}
-		return res;
-	}
-
 	static Picasso picasso;
 
 	@NonNull
@@ -240,7 +171,7 @@ public class App extends yuku.afw.App {
 		if (picasso == null) {
 			picasso = res = new Picasso.Builder(context)
 				.defaultBitmapConfig(Bitmap.Config.RGB_565)
-				.downloader(new OkHttp3Downloader(okhttp()))
+				.downloader(new OkHttp3Downloader(Connections.getOkHttp()))
 				.build();
 			return res;
 		}

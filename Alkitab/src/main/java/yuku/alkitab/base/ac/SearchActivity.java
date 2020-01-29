@@ -7,17 +7,6 @@ import android.database.MatrixCursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
-import androidx.annotation.Keep;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import com.google.android.material.snackbar.Snackbar;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.core.graphics.ColorUtils;
-import androidx.cursoradapter.widget.CursorAdapter;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.view.ActionMode;
-import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.Toolbar;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -36,7 +25,21 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.view.ActionMode;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.core.graphics.ColorUtils;
+import androidx.cursoradapter.widget.CursorAdapter;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.google.android.material.snackbar.Snackbar;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import yuku.afw.storage.Preferences;
 import yuku.afw.widget.EasyAdapter;
 import yuku.alkitab.base.App;
@@ -46,9 +49,13 @@ import yuku.alkitab.base.ac.base.BaseActivity;
 import yuku.alkitab.base.model.MVersionInternal;
 import yuku.alkitab.base.storage.Prefkey;
 import yuku.alkitab.base.util.Appearances;
+import yuku.alkitab.base.util.ClipboardUtil;
+import yuku.alkitab.base.util.FormattedVerseText;
 import yuku.alkitab.base.util.Jumper;
+import static yuku.alkitab.base.util.Literals.Array;
 import yuku.alkitab.base.util.QueryTokenizer;
 import yuku.alkitab.base.util.SearchEngine;
+import yuku.alkitab.base.util.TextColorUtil;
 import yuku.alkitab.debug.BuildConfig;
 import yuku.alkitab.debug.R;
 import yuku.alkitab.model.Book;
@@ -57,15 +64,7 @@ import yuku.alkitab.util.Ari;
 import yuku.alkitab.util.IntArrayList;
 import yuku.alkitabintegration.display.Launcher;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static yuku.alkitab.base.util.Literals.Array;
-
 public class SearchActivity extends BaseActivity {
-	public static final String TAG = SearchActivity.class.getSimpleName();
-	
 	private static final String EXTRA_openedBookId = "openedBookId";
 	private static int REQCODE_bookFilter = 1;
 
@@ -138,7 +137,7 @@ public class SearchActivity extends BaseActivity {
 							final int ari = aris.get(position);
 
 							final String reference = searchInVersion.reference(ari);
-							final String verseText = U.removeSpecialCodes(searchInVersion.loadVerseText(ari));
+							final String verseText = FormattedVerseText.removeSpecialCodes(searchInVersion.loadVerseText(ari));
 
 							final int sb_len = sb.length();
 							sb.append(reference).append("\n").append(verseText).append("\n\n");
@@ -148,7 +147,7 @@ public class SearchActivity extends BaseActivity {
 							}
 						}
 
-						U.copyToClipboard(sb);
+						ClipboardUtil.copyToClipboard(sb);
 						Snackbar.make(root, R.string.search_selected_verse_copied, Snackbar.LENGTH_SHORT).show();
 
 						mode.finish();
@@ -373,7 +372,7 @@ public class SearchActivity extends BaseActivity {
 		lsSearchResults.setEmptyView(tSearchTips);
 		Appearances.applyTextAppearance(tSearchTips, textSizeMult);
 		
-		hiliteColor = U.getSearchKeywordTextColorByBrightness(applied.backgroundBrightness);
+		hiliteColor = TextColorUtil.getSearchKeywordByBrightness(applied.backgroundBrightness);
 
 		lsSearchResults.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
 		lsSearchResults.setOnItemClickListener((parent, view, position, id) -> {
@@ -664,7 +663,7 @@ public class SearchActivity extends BaseActivity {
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	protected void search(final String query_string) {
+	protected void search(@NonNull final String query_string) {
 		if (query_string.trim().length() == 0) {
 			return;
 		}
@@ -834,7 +833,7 @@ public class SearchActivity extends BaseActivity {
 		final SearchHistory sh = loadSearchHistory();
 		// look for this query_string and remove
 		for (int i = sh.entries.size() - 1; i >= 0; i--) {
-			if (U.equals(sh.entries.get(i).query_string, query_string)) {
+			if (query_string.equals(sh.entries.get(i).query_string)) {
 				sh.entries.remove(i);
 			}
 		}
@@ -880,7 +879,7 @@ public class SearchActivity extends BaseActivity {
 			if (checked) {
 				final int colorRgb = Preferences.getInt(R.string.pref_selectedVerseBgColor_key, R.integer.pref_selectedVerseBgColor_default);
 				checkedBgColor = ColorUtils.setAlphaComponent(colorRgb, 0xa0);
-				checkedTextColor = U.getTextColorForSelectedVerse(checkedBgColor);
+				checkedTextColor = TextColorUtil.getForCheckedVerse(checkedBgColor);
 			} else {
 				// no need to calculate
 				checkedBgColor = 0;
@@ -903,7 +902,7 @@ public class SearchActivity extends BaseActivity {
 				lSnippet.setTextColor(checkedTextColor);
 			}
 
-			final String verseText = U.removeSpecialCodes(searchInVersion.loadVerseText(ari));
+			final String verseText = FormattedVerseText.removeSpecialCodes(searchInVersion.loadVerseText(ari));
 			if (verseText != null) {
 				lSnippet.setText(SearchEngine.hilite(verseText, rt, checked? checkedTextColor: hiliteColor));
 			} else {

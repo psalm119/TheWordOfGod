@@ -12,8 +12,6 @@ import yuku.alkitabintegration.display.Launcher;
  * Transparent activity that shows verses dialog only.
  */
 public class VersesDialogActivity extends BaseActivity {
-	public static final String TAG = VersesDialogActivity.class.getSimpleName();
-
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -38,7 +36,7 @@ public class VersesDialogActivity extends BaseActivity {
 		final VersesDialog versesDialog = VersesDialog.newInstance(ariRanges);
 		versesDialog.setListener(new VersesDialog.VersesDialogListener() {
 			@Override
-			public void onVerseSelected(final VersesDialog dialog, final int ari) {
+			public void onVerseSelected(final int ari) {
 				startActivity(Launcher.openAppAtBibleLocationWithVerseSelected(ari));
 				finish();
 			}

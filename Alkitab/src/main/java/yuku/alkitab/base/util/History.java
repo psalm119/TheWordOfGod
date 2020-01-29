@@ -47,6 +47,7 @@ public class History {
 
 	private static History instance;
 
+	@NonNull
 	public static History getInstance() {
 		if (instance == null) {
 			instance = new History();
@@ -97,7 +98,7 @@ public class History {
 		entry.gid = Gid.newGid();
 		entry.ari = ari;
 		entry.timestamp = timestamp;
-		entry.creator_id = U.getInstallationId();
+		entry.creator_id = InstallationUtil.getInstallationId();
 		entries.add(0, entry);
 
 		// and remove if overflow
@@ -146,7 +147,7 @@ public class History {
 
 			{ // if the current simpleToken has changed (sync user logged off or changed), reject this append delta
 				final String simpleToken = Preferences.getString(Prefkey.sync_simpleToken);
-				if (!U.equals(simpleToken, simpleTokenBeforeSync)) {
+				if (!simpleTokenBeforeSync.equals(simpleToken)) {
 					return Sync.ApplyAppendDeltaResult.dirty_sync_account;
 				}
 			}
